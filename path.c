@@ -39,13 +39,13 @@ char *_strstr(char *src, char *find)
 		return (NULL);
 }
 
-char *_getenv(char *name, char **env)
+char *_getenv(char *name)
 {
 	int i = 0;
-	while (env[i])
+	while (environ[i])
 	{
-		if (strncmp(env[i], name, _strlen(name)) == 0)
-			return ((_strstr(env[i], "=")) + 1);
+		if (strncmp(environ[i], name, _strlen(name)) == 0)
+			return ((_strstr(environ[i], "=")) + 1);
 		i++;
 	}
 	return (NULL);
@@ -85,12 +85,11 @@ char *single_path(char *path)
 char *get_command(char *word)
 {
 	char *token, *full_cmd = NULL;
-	char *path = _getenv("PATH", environ);
+	char *path = _getenv("PATH");
 	token = strtok(path, ":");
 	while (token)
 	{
-		full_cmd = (char *)realloc(
-			full_cmd, sizeof(char) * (strlen(token) + strlen(word) + 1));
+		full_cmd = (char *)realloc(full_cmd, sizeof(char) * (strlen(token) + strlen(word) + 1));
 		strcpy(full_cmd, token);
 		strcat(full_cmd, "/");
 		strcat(full_cmd, word);
@@ -107,20 +106,26 @@ int main(int argc, char *argv[], char **envp)
 {
 	(void)argc;
 	(void)argv;
-	char *buffer = NULL, *cmd;
-	size_t MAX_BUF, nchars;
 
-	while (1)
+	char *buffer, *path, *token, *cmd;
+	size_t NBUF, nchars;
+
+	nchars = getline(&buffer, &NBUF, stdin);
+
+	path = _getenv("PATH");
+	printf("%s\n", path);
+
+
+	token = strtok(path, ":");
+	while (token)
 	{
-		nchars = getline(&buffer, &MAX_BUF, stdin);
-		if (nchars == -1)
-		{
-			free(buffer);
-			exit(1);
-		}
+		cmd = realloc(cmd, sizeof(char) * (_strlen(token) + _strlen(buffer) + 2));
+		strcpy(cmd, token);
+		strcat(cmd, "/");
+		strcat(cmd, buffer);
 
-		cmd = get_command(buffer);
-		printf("%s\n", cmd);
+		printf("%s\n", buffer);
+		token = strtok(NULL, ":");
 	}
 
 	return 0;
